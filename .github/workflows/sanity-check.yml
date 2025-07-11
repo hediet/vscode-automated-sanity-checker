@@ -17,7 +17,10 @@ jobs:
         strategy:
             matrix:
                 # windows-11-arm
-                os: [windows-latest, windows-11-arm]
+                os:
+                    - windows-latest
+                    # For windows-11-arm, the repo must be public!
+                    # - windows-11-arm
                 target: [user-installer, system-installer, archive, server]
                 vscodeCommit:
                     [
