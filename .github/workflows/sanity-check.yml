@@ -1,0 +1,141 @@
+name: Sanity Check Windows Builds
+
+on:
+    push:
+        branches:
+            - main
+    workflow_dispatch:
+        inputs:
+            vscodeCommit:
+                description: "VS Code commit hash to test"
+                required: true
+                default: "cb0c47c0cfaad0757385834bd89d410c78a856c0"
+                type: string
+
+jobs:
+    test:
+        strategy:
+            matrix:
+                # windows-11-arm
+                os: [windows-latest, windows-11-arm]
+                target: [user-installer, system-installer, archive, server]
+                vscodeCommit:
+                    [
+                        "${{ github.event.inputs.vscodeCommit || 'cb0c47c0cfaad0757385834bd89d410c78a856c0' }}",
+                    ]
+
+        runs-on: ${{ matrix.os }}
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "24"
+
+            - name: Setup .NET
+              uses: actions/setup-dotnet@v4
+              with:
+                  dotnet-version: "9.x"
+
+            - name: Install FFmpeg
+              run: |
+                  Write-Host "Installing FFmpeg via Chocolatey..."
+                  choco install ffmpeg -y
+                  Write-Host "FFmpeg installed successfully"
+                  ffmpeg -version
+              shell: pwsh
+
+            - name: Install dependencies
+              run: npm install
+
+            - name: Check and kill WWAHost if active
+              run: |
+                  Write-Host "Checking for active WWAHost process..."
+                  try {
+                      Add-Type -TypeDefinition 'using System; using System.Runtime.InteropServices; public class Win32 { [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow(); [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId); }'
+                      $hwnd = [Win32]::GetForegroundWindow()
+                      $processId = 0
+                      [Win32]::GetWindowThreadProcessId($hwnd, [ref]$processId)
+                      
+                      if ($processId -gt 0) {
+                          $process = Get-Process -Id $processId -ErrorAction SilentlyContinue
+                          if ($process -and ($process.ProcessName -eq "WWAHost")) {
+                              Write-Host "WWAHost process (ID: $($process.Id)) is currently active. Terminating..."
+                              Stop-Process -Id $process.Id -Force
+                              Write-Host "WWAHost process terminated successfully"
+                              Start-Sleep -Seconds 2
+                          } else {
+                              Write-Host "Active process is not WWAHost (Process: $($process.ProcessName), ID: $processId)"
+                          }
+                      } else {
+                          Write-Host "No active foreground process found"
+                      }
+                  } catch {
+                      Write-Host "Error checking for WWAHost process: $($_.Exception.Message)"
+                      Write-Host "Continuing with the workflow..."
+                  }
+              shell: pwsh
+
+            - name: Run the application
+              run: npm run run -- --target=${{ matrix.target }} --vscode-commit=${{ matrix.vscodeCommit }}
+              continue-on-error: true
+
+            # - name: Install VS Code CLI
+            #   if: matrix.os == 'windows-11-arm'
+            #   run: |
+            #       Invoke-WebRequest -Uri "https://code.visualstudio.com/sha/download?build=stable&os=cli-win32-arm64" -OutFile "vscode_cli.zip"
+            #       Expand-Archive -Path "vscode_cli.zip" -DestinationPath "vscode_cli"
+            #       # Add to PATH for this session
+            #       $env:PATH += ";$(Get-Location)\vscode_cli"
+            #       echo "$(Get-Location)\vscode_cli" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+            # - name: Install VS Code CLI
+            #   if: matrix.os == 'windows-latest'
+            #   run: |
+            #       Invoke-WebRequest -Uri "https://code.visualstudio.com/sha/download?build=stable&os=cli-win32-x64" -OutFile "vscode_cli.zip"
+            #       Expand-Archive -Path "vscode_cli.zip" -DestinationPath "vscode_cli"
+            #       # Add to PATH for this session
+            #       $env:PATH += ";$(Get-Location)\vscode_cli"
+            #       echo "$(Get-Location)\vscode_cli" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+            # - name: Start VS Code Tunnel
+            #   run: code tunnel --accept-server-license-terms
+
+            - name: Upload output files
+              uses: actions/upload-artifact@v4
+              with:
+                  name: ${{ matrix.os }}-${{ matrix.target }}-output
+                  path: ./output/
+
+    merge-results:
+        needs: test
+        runs-on: ubuntu-latest
+        steps:
+            - name: Download all artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  path: ./all-outputs
+
+            - name: Merge outputs into single directory
+              run: |
+                  mkdir -p ./merged-output
+                  for artifact_dir in ./all-outputs/*/; do
+                      artifact_name=$(basename "$artifact_dir")
+                      # Remove the "-output" suffix from artifact name to get the prefix
+                      prefix=${artifact_name%-output}
+                      for file in "$artifact_dir"*; do
+                          if [ -f "$file" ]; then
+                              filename=$(basename "$file")
+                              cp "$file" "./merged-output/${prefix}-${filename}"
+                          fi
+                      done
+                  done
+                  ls -la ./merged-output/
+
+            - name: Upload merged result
+              uses: actions/upload-artifact@v4
+              with:
+                  name: result
+                  path: ./merged-output/
