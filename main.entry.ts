@@ -39,7 +39,9 @@ async function main() {
     console.log(`Running automated sanity testing for target: ${target}`);
     const store = new DisposableStore();
 
-    const recording = store.add(await ScreenRecording.record(join(outputDir, "recording.mp4")));
+    const recordingEnabled = false;
+
+    const recording = recordingEnabled ? store.add(await ScreenRecording.record(join(outputDir, "recording.mp4"))) : undefined;
 
     let hadError = false;
     const runner = store.add(new StepsRunner(getSteps(store, artifact)));
@@ -51,7 +53,7 @@ async function main() {
         hadError = true;
     }
 
-    await recording.stop();
+    await recording?.stop();
 
     store.dispose();
 
