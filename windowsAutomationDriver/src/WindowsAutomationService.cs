@@ -306,6 +306,15 @@ namespace WindowsAutomationDriver
             return Convert.ToBase64String(stream.ToArray());
         }
 
+        public void FocusFirstWindow(int processId)
+        {
+            var hwnd = Process.GetProcessById(processId).MainWindowHandle;
+            SetForegroundWindow(hwnd);
+        }
+
+        [DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
+
         private UiTreeNode BuildUiTreeNode(AutomationElement element, string idPrefix)
         {
             var automationId = element.Current.AutomationId;

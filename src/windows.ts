@@ -149,6 +149,10 @@ export class WindowsAutomationDriver extends Disposable implements IAutomationDr
         children.push(...(node.children?.map((child: any) => this.convertToUINode(child, n)) || []));
         return n;
     }
+
+    async focusFirstWindow(processId: number): Promise<void> {
+        await this.server.server.focusFirstWindow({ processId });
+    }
 }
 
 
@@ -262,6 +266,13 @@ const c = contract({
             }),
             result: z.null(),
         }),
+        focusFirstWindow: requestType({
+            method: 'FocusFirstWindow',
+            params: z.object({
+                processId: z.number(),
+            }),
+            result: z.null(),
+        }),
         takeScreenshot: requestType({
             method: 'TakeScreenshot',
             params: z.object({
@@ -320,6 +331,10 @@ abstract class BaseWindowsProcess implements IProcess {
 
     async getUINode(): Promise<UINode> {
         return await this._driver.getUiTreeForProcess(this.id, true);
+    }
+
+    async focusFirstWindow(): Promise<void> {
+        await this._driver.focusFirstWindow(this._processId);
     }
 
     async waitForUINode(predicate: (node: UINode) => boolean, options?: IWaitOptions): Promise<UINode> {

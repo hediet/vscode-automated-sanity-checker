@@ -155,6 +155,9 @@ function getSetupAndRunSteps() {
                 await process.waitForUINode(e => e.type === 'pane' && e.text === 'License Agreement');
             }
 
+            // focus window
+            process.focusFirstWindow();
+
             const radioButton = await process.waitForUINode(e => e.type === 'radio button' && e.text === 'I accept the agreement');
             ctx.reportSideEffect();
             await driver.clickElement(radioButton);

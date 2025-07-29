@@ -44,6 +44,8 @@ export interface IProcess {
 
     getUINode(): Promise<UINode>;
     waitForUINode(predicate: (node: UINode) => boolean, options?: IWaitOptions): Promise<UINode>;
+
+    focusFirstWindow(): Promise<void>;
 }
 
 export interface IWaitOptions {
