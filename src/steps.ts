@@ -6,7 +6,7 @@ import { WindowsAutomationDriver } from "./windows";
 import { existsSync, mkdirSync } from "node:fs";
 import { ArtifactRef } from "./vscode/getDownloadUrl";
 import { readdir, writeFile } from "node:fs/promises";
-import { exec, spawn } from "node:child_process";
+import { spawn } from "node:child_process";
 import puppeteer from 'puppeteer';
 import AdmZip = require("adm-zip");
 
@@ -39,19 +39,25 @@ export function getSteps(store: DisposableStore, artifactRef: ArtifactRef) {
 
                 return { artifactPath, extractedFile: extractedFile };
             }),
-            step({ name: 'Run CLI' }, async ({ extractedFile }, ctx) => {
-                const p = exec(`start cmd.exe /c ${extractedFile} tunnel`, {
-                    cwd: dirname(extractedFile),
+            step({ name: 'Screenshot' }, async (args, ctx) => {
+                const driver = await WindowsAutomationDriver.create();
+                await driver.sendKey('Escape');
+                return { driver, ...args };
+            }),
+            step({ name: 'Run CLI' }, async (args, ctx) => {
+                const p = spawn('cmd.exe', ['/c', 'start', 'cmd', '/k', `${args.extractedFile} --version && ${args.extractedFile} tunnel`], {
+                    cwd: dirname(args.extractedFile),
+                    stdio: 'inherit',
                 });
                 ctx.onReset(async () => { p.kill(); });
                 await waitMs(5_000);
-                return { processId: p.pid };
+                return { processId: p.pid, ...args };
             }),
-            step({ name: 'Screenshot' }, async ({ processId }, ctx) => {
-                const driver = await WindowsAutomationDriver.create();
-                const screenshot = await driver.createScreenshot();
+            step({ name: 'Screenshot' }, async (args, ctx) => {
+                const screenshot = await args.driver.createScreenshot();
                 const screenshotPath = join(outputDir, 'screenshot-cli.png');
                 await writeFile(screenshotPath, Buffer.from(screenshot.base64Png, 'base64'));
+                return args;
             }),
         );
     }
@@ -189,7 +195,7 @@ function getSetupAndRunSteps() {
             }
 
             // focus window
-            process.focusFirstWindow();
+            // process.focusFirstWindow();
 
             const radioButton = await process.waitForUINode(e => e.type === 'radio button' && e.text === 'I accept the agreement');
             ctx.reportSideEffect();
