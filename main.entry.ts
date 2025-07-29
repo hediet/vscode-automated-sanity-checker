@@ -5,6 +5,7 @@ import { StepsRunner } from "./src/steps/StepsRunner";
 import { ScreenRecording } from "./src/ScreenRecording";
 import { ArtifactRef, VsCodeArtifactName, getArch, getOs } from "./src/vscode/getDownloadUrl";
 import { join } from "node:path";
+import { setTimeout } from "node:timers/promises";
 
 async function main() {
     const program = new Command();
@@ -51,6 +52,8 @@ async function main() {
     } catch (e) {
         console.error("An error occurred during the steps execution:", e);
         hadError = true;
+
+        await setTimeout(2000);
     }
 
     await recording?.stop();

@@ -80,6 +80,7 @@ export function getSteps(store: DisposableStore, artifactRef: ArtifactRef) {
         }),
         step({ name: 'Driver Setup' }, async (args, ctx) => {
             const driver: IAutomationDriver = await WindowsAutomationDriver.create();
+            await driver.sendKey('Escape'); // to close the start menu on windows arm11
             return { driver, ...args };
         }),
 
