@@ -40,7 +40,7 @@ async function main() {
     console.log(`Running automated sanity testing for target: ${target}`);
     const store = new DisposableStore();
 
-    const recordingEnabled = false;
+    const recordingEnabled = true;
 
     const recording = recordingEnabled ? store.add(await ScreenRecording.record(join(outputDir, "recording.mp4"))) : undefined;
 
