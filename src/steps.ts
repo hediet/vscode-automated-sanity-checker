@@ -6,7 +6,7 @@ import { WindowsAutomationDriver } from "./windows";
 import { existsSync, mkdirSync } from "node:fs";
 import { ArtifactRef } from "./vscode/getDownloadUrl";
 import { readdir, writeFile } from "node:fs/promises";
-import { spawn } from "node:child_process";
+import { exec, spawn } from "node:child_process";
 import puppeteer from 'puppeteer';
 import AdmZip = require("adm-zip");
 
@@ -22,6 +22,39 @@ if (!existsSync(outputDir)) {
 
 
 export function getSteps(store: DisposableStore, artifactRef: ArtifactRef) {
+    if (artifactRef.artifact.props.type === 'cli') {
+        return steps(
+            step({ name: 'Download Artifact if it does not exist' }, async (args, ctx) => {
+                const { artifactPath } = await downloadArtifact(artifactRef);
+                return { artifactPath };
+            }),
+            step({ name: 'Extract CLI' }, async ({ artifactPath }, ctx) => {
+                const { extractedDir } = await extractArtifact(artifactPath);
+                // find first file in extractedDir
+                const files = (await readdir(extractedDir, { withFileTypes: true }))
+                    .filter(dirent => !dirent.isDirectory())
+                    .map(dirent => dirent.name);
+                const firstFile = files[0];
+                const extractedFile = join(extractedDir, firstFile);
+
+                return { artifactPath, extractedFile: extractedFile };
+            }),
+            step({ name: 'Run CLI' }, async ({ extractedFile }, ctx) => {
+                const p = exec(`start cmd.exe /c ${extractedFile} tunnel`, {
+                    cwd: dirname(extractedFile),
+                });
+                ctx.onReset(async () => { p.kill(); });
+                await waitMs(5_000);
+                return { processId: p.pid };
+            }),
+            step({ name: 'Screenshot' }, async ({ processId }, ctx) => {
+                const driver = await WindowsAutomationDriver.create();
+                const screenshot = await driver.createScreenshot();
+                const screenshotPath = join(outputDir, 'screenshot-cli.png');
+                await writeFile(screenshotPath, Buffer.from(screenshot.base64Png, 'base64'));
+            }),
+        );
+    }
     if (artifactRef.artifact.props.type === 'server') {
         return steps(
             step({ name: 'Download Artifact if it does not exist' }, async (args, ctx) => {

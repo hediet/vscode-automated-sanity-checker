@@ -14,7 +14,7 @@ async function main() {
         .name("automatic-sanity-testing")
         .description("Automated sanity testing tool")
         .version("1.0.0")
-        .requiredOption("-t, --target <target>", "Target environment (user, system, or archive)")
+        .requiredOption("-t, --target <target>", "Target environment (user, system, cli, or archive)")
         .requiredOption("-c, --vscode-commit <commit>", "VS Code commit hash")
         .parse();
 
@@ -26,12 +26,13 @@ async function main() {
         VsCodeArtifactName.build({
             arch: getArch(),
             os: getOs(),
-            type: target === "server" ? "server" : "desktop",
+            type: target === "cli" ? "cli" : target === "server" ? "server" : "desktop",
             flavor: ({
                 "user-installer": "user",
                 "archive": "archive",
                 "server": "web",
                 "system-installer": undefined,
+                "cli": undefined,
             } as any)[target],
         }),
         "stable",

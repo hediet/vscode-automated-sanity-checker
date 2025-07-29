@@ -21,7 +21,7 @@ jobs:
                     - windows-latest
                     # For windows-11-arm, the repo must be public!
                     - windows-11-arm
-                target: [user-installer, system-installer, archive, server]
+                target: [user-installer, system-installer, archive, server, cli]
                 vscodeCommit:
                     [
                         "${{ github.event.inputs.vscodeCommit || '488a1f239235055e34e673291fb8d8c810886f81' }}",

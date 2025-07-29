@@ -16,13 +16,23 @@ export function run() {
 
         const runner = store.add(new StepsRunner());
 
-        const artifact = new ArtifactRef(
+        const artifact2 = new ArtifactRef(
             'cb0c47c0cfaad0757385834bd89d410c78a856c0',
             VsCodeArtifactName.build({
                 arch: getArch(),
                 os: getOs(),
                 type: 'server',
                 flavor: 'web',
+            }),
+            "stable",
+        );
+
+        const artifact = new ArtifactRef(
+            '488a1f239235055e34e673291fb8d8c810886f81',
+            VsCodeArtifactName.build({
+                arch: getArch(),
+                os: getOs(),
+                type: 'cli',
             }),
             "stable",
         );

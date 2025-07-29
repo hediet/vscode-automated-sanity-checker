@@ -35,7 +35,7 @@ export class WindowsAutomationDriver extends Disposable implements IAutomationDr
 
     private readonly initialized: Promise<void>;
 
-    constructor() {
+    private constructor() {
         super();
 
         const proc = spawn('dotnet', ['run'], {
