@@ -2,7 +2,7 @@ import { IAutomationDriver, Image, UINode, IProcess, Rect, Point, IWaitOptions, 
 import { spawn, ChildProcess } from "child_process";
 import { exec } from "node:child_process";
 import { Disposable } from "./disposables";
-import { ConsoleRpcLogger, contract, NodeJsMessageStreamWithHeaders, requestType, TypedChannel } from "@hediet/json-rpc-node";
+import { ConsoleMessageLogger, ConsoleRpcLogger, contract, NodeJsMessageStreamWithHeaders, requestType, TypedChannel } from "@hediet/json-rpc-node";
 import { join } from "node:path";
 import z, { ZodType } from "zod";
 
@@ -48,9 +48,9 @@ export class WindowsAutomationDriver extends Disposable implements IAutomationDr
         });
         this._store.add({ dispose: () => { proc.kill(); } });
 
-        const t = TypedChannel.fromStream(NodeJsMessageStreamWithHeaders.connectToProcess(proc), {
+        const t = TypedChannel.fromStream(NodeJsMessageStreamWithHeaders.connectToProcess(proc).log(new ConsoleMessageLogger()), {
             logger: new ConsoleRpcLogger()
-        })
+        });
         this.server = c.getServer(t, {});
         t.startListen();
 

@@ -6,7 +6,7 @@
 			"type": "node",
 			"request": "launch",
 			"program": "${workspaceFolder}/dev.entry.js",
-			"2runtimeExecutable": "${workspaceFolder}/node_modules/.bin/tsx.ps1",
+			"_runtimeExecutable": "${workspaceFolder}/node_modules/.bin/tsx.ps1",
 			"runtimeExecutable": "${workspaceFolder}/node_modules/.bin/ts-node.ps1",
 			"runtimeArgs": ["-T"],
 			"console": "integratedTerminal",

@@ -7,6 +7,11 @@ import { ArtifactRef, getArch, getOs, VsCodeArtifactName } from "./vscode/getDow
 export function run() {
     const store = new DisposableStore();
 
+    process.on('unhandledRejection', (reason, p) => {
+        console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
+
+    });
+
     async function main() {
 
         const runner = store.add(new StepsRunner());
@@ -37,7 +42,11 @@ export function run() {
         }));
 
 
-        await runner.getFinalResult();
+        try {
+            await runner.getFinalResult();
+        } catch (e) {
+            console.error(e);
+        }
 
     }
 

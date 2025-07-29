@@ -40,23 +40,36 @@ export function getSteps(store: DisposableStore, artifactRef: ArtifactRef) {
                 return { artifactPath, extractedDir: extractedDir2 };
             }),
             step({ name: 'Run Server' }, async ({ extractedDir }, ctx) => {
-                spawn('cmd.exe', ['/c', join(extractedDir, 'bin', 'code-server.cmd'), '--accept-server-license-terms', '--connection-token', 'testing-only-token'], {
+                const p = spawn('cmd.exe', ['/c', join(extractedDir, 'bin', 'code-server.cmd'), '--accept-server-license-terms', '--connection-token', 'testing-only-token'], {
                     cwd: extractedDir,
                     stdio: 'inherit',
                 });
-
+                ctx.onReset(async () => { p.kill(); });
                 await waitMs(5_000);
-
+            }),
+            step({ name: 'Run Puppeteer' }, async (args, ctx) => {
                 const browser = await puppeteer.launch({ headless: false });
+                ctx.onReset(async () => { browser.close(); });
                 const page = await browser.newPage();
-
+                return { page };
+            }),
+            step({ name: 'Navigate' }, async (args, ctx) => {
+                const { page } = args;
                 await page.goto('http://localhost:8000?tkn=testing-only-token&folder=/C%3A/');
+                ctx.onReset(async () => { });
                 await waitMs(10_000);
                 return { page };
             }),
             step({ name: 'Open about dialog' }, async (args, ctx) => {
                 const { page } = args;
+
+                /*ctx.reportSideEffect();
+                await page.focus('.monaco-workbench');
+
+                return;*/
+
                 await page.keyboard.press('Enter'); // trust dialog
+                ctx.reportSideEffect();
                 await waitMs(1000);
                 await page.keyboard.press('F1');
                 await waitMs(1000);
