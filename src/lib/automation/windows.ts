@@ -23,7 +23,7 @@ export class WindowsAutomationDriver extends Disposable implements IAutomationDr
         super();
 
         const proc = spawn('dotnet', ['run'], {
-            cwd: join(__dirname, '..', 'windowsAutomationDriver'),
+            cwd: join(__dirname, '..', '..', 'windowsAutomationDriver'),
             stdio: ['pipe', 'pipe', 'pipe']
         });
 
