@@ -1,9 +1,9 @@
 import { Command } from "commander";
-import { DisposableStore } from "./src/disposables";
+import { DisposableStore } from "./src/lib/disposables";
 import { getSteps, outputDir } from "./src/steps";
-import { StepsRunner } from "./src/steps/StepsRunner";
-import { ScreenRecording } from "./src/ScreenRecording";
-import { ArtifactRef, VsCodeArtifactName, getArch, getOs } from "./src/vscode/getDownloadUrl";
+import { StepsRunner } from "./src/lib/steps/StepsRunner";
+import { ScreenRecording } from "./src/lib/ScreenRecording";
+import { ArtifactRef, VsCodeArtifactName, getArch, getOs } from "./src/getDownloadUrl";
 import { join } from "node:path";
 import { setTimeout } from "node:timers/promises";
 

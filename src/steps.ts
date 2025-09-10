@@ -1,10 +1,10 @@
 import { dirname, join } from "node:path";
-import { IAutomationDriver, UINode } from "./automationDriver";
-import { DisposableStore } from "./disposables";
-import { composedStep, step, steps } from "./steps/steps";
-import { WindowsAutomationDriver } from "./windows";
+import { IAutomationDriver, UINode } from "./lib/automation/automationDriver";
+import { DisposableStore } from "./lib/disposables";
+import { composedStep, step, steps } from "./lib/steps/steps";
+import { WindowsAutomationDriver } from "./lib/automation/windows";
 import { existsSync, mkdirSync } from "node:fs";
-import { ArtifactRef } from "./vscode/getDownloadUrl";
+import { ArtifactRef } from "./getDownloadUrl";
 import { readdir, writeFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import puppeteer from 'puppeteer';

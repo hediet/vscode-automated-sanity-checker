@@ -48,6 +48,8 @@ export interface IProcess {
     focusFirstWindow(): Promise<void>;
 }
 
+
+
 export interface IWaitOptions {
     timeoutMs?: number;
 }

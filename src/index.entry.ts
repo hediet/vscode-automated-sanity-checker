@@ -1,8 +1,8 @@
-import { DisposableStore } from "./disposables";
-import { StepsRunner } from "./steps/StepsRunner";
+import { DisposableStore } from "./lib/disposables";
+import { StepsRunner } from "./lib/steps/StepsRunner";
 import { hotReloadExportedItem } from "@hediet/node-reload";
 import { getSteps } from "./steps";
-import { ArtifactRef, getArch, getOs, VsCodeArtifactName } from "./vscode/getDownloadUrl";
+import { ArtifactRef, getArch, getOs, VsCodeArtifactName } from "./getDownloadUrl";
 
 export function run() {
     const store = new DisposableStore();

@@ -1,27 +1,11 @@
 import { IAutomationDriver, Image, UINode, IProcess, Rect, Point, IWaitOptions, ProcessTree } from "./automationDriver";
 import { spawn, ChildProcess } from "child_process";
 import { exec } from "node:child_process";
-import { Disposable } from "./disposables";
+import { Disposable } from "../disposables";
 import { ConsoleMessageLogger, ConsoleRpcLogger, contract, NodeJsMessageStreamWithHeaders, requestType, TypedChannel } from "@hediet/json-rpc-node";
 import { join } from "node:path";
 import z, { ZodType } from "zod";
-
-function runVsCodeCommand(commandId: string, ...args: unknown[]) {
-    interface ISimpleSet<T> {
-        add(value: T): void;
-        delete(value: T): void;
-    }
-    interface GlobalObj {
-        $$debugValueEditor_runVsCodeCommand?: (commandId: string, ...args: unknown[]) => void;
-        $$debugValueEditor_onConnected?: ISimpleSet<() => void>;
-    }
-
-    const g = globalThis as any as GlobalObj;
-    (g.$$debugValueEditor_onConnected = g.$$debugValueEditor_onConnected || new Set()).add(() => {
-        g.$$debugValueEditor_runVsCodeCommand!(commandId, ...args);
-    });
-
-}
+import { runCommandInVsCodeDebugger } from "../runCommandInVsCodeDebugger";
 
 export class WindowsAutomationDriver extends Disposable implements IAutomationDriver {
     private server: ReturnType<typeof c.getServer>;
@@ -55,7 +39,7 @@ export class WindowsAutomationDriver extends Disposable implements IAutomationDr
         t.startListen();
 
         this.initialized = this.server.server.getProcessId().then((processId) => {
-            runVsCodeCommand('debug-value-editor.startDebugging', {
+            runCommandInVsCodeDebugger('debug-value-editor.startDebugging', {
                 launchConfig: {
                     name: 'Windows Automation Driver',
                     type: 'coreclr',
