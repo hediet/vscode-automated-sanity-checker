@@ -153,8 +153,20 @@ namespace WindowsAutomationDriver
                 {
                     foreach (int childPid in childrenMap[pid])
                     {
-                        var childProcess = Process.GetProcessById(childPid)!;
-                        children.Add(BuildProcessTree(childProcess));
+                        try
+                        {
+                            // Child processes may have exited between the snapshot and now.
+                            var childProcess = Process.GetProcessById(childPid);
+                            children.Add(BuildProcessTree(childProcess));
+                        }
+                        catch (ArgumentException)
+                        {
+                            // Process no longer running – skip.
+                        }
+                        catch (InvalidOperationException)
+                        {
+                            // Process info not accessible – skip.
+                        }
                     }
                 }
 
