@@ -21,7 +21,7 @@ if (!existsSync(outputDir)) {
 }
 
 
-export function getSteps(store: DisposableStore, artifactRef: ArtifactRef) {
+export function getCliSteps(store: DisposableStore, artifactRef: ArtifactRef) {
     if (artifactRef.artifact.props.type === 'cli') {
         return steps(
             step({ name: 'Download Artifact if it does not exist' }, async (args, ctx) => {
@@ -39,9 +39,10 @@ export function getSteps(store: DisposableStore, artifactRef: ArtifactRef) {
 
                 return { artifactPath, extractedFile: extractedFile };
             }),
-            step({ name: 'Screenshot' }, async (args, ctx) => {
+            step({ name: 'Create Driver And Press Escape' }, async (args, ctx) => {
                 const driver = await WindowsAutomationDriver.create();
                 await driver.sendKey('Escape');
+                await driver.minimizeAllWindows();
                 return { driver, ...args };
             }),
             step({ name: 'Run CLI' }, async (args, ctx) => {
@@ -132,6 +133,7 @@ export function getSteps(store: DisposableStore, artifactRef: ArtifactRef) {
         }),
         step({ name: 'Driver Setup' }, async (args, ctx) => {
             const driver: IAutomationDriver = await WindowsAutomationDriver.create();
+            await driver.minimizeAllWindows();
             await driver.sendKey('Escape'); // to close the start menu on windows arm11
             return { driver, ...args };
         }),
@@ -178,6 +180,9 @@ function getSetupAndRunSteps() {
                 await process.waitForExit();
             }
             console.log(`Starting VS Code setup at ${artifactPath}`);
+
+            await driver.minimizeAllWindows();
+
             const p = await driver.createProcess(artifactPath);
             ctx.onReset(async () => await p.kill());
             return { driver, process: p };

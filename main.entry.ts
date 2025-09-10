@@ -1,6 +1,6 @@
 import { Command } from "commander";
 import { DisposableStore } from "./src/lib/disposables";
-import { getSteps, outputDir } from "./src/steps";
+import { getCliSteps, outputDir } from "./src/steps";
 import { StepsRunner } from "./src/lib/steps/StepsRunner";
 import { ScreenRecording } from "./src/lib/ScreenRecording";
 import { ArtifactRef, VsCodeArtifactName, getArch, getOs } from "./src/getDownloadUrl";
@@ -46,7 +46,7 @@ async function main() {
     const recording = recordingEnabled ? store.add(await ScreenRecording.record(join(outputDir, "recording.mp4"))) : undefined;
 
     let hadError = false;
-    const runner = store.add(new StepsRunner(getSteps(store, artifact)));
+    const runner = store.add(new StepsRunner(getCliSteps(store, artifact)));
     try {
         await runner.getFinalResult();
         console.log("Steps completed successfully");

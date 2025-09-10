@@ -312,8 +312,49 @@ namespace WindowsAutomationDriver
             SetForegroundWindow(hwnd);
         }
 
+        public void MinimizeAllWindows()
+        {
+            try
+            {
+                var windowsToMinimize = new List<IntPtr>();
+                EnumWindows((hWnd, lParam) =>
+                {
+                    if (IsWindowVisible(hWnd) && !IsIconic(hWnd))
+                    {
+                        windowsToMinimize.Add(hWnd);
+                    }
+                    return true;
+                }, IntPtr.Zero);
+
+                foreach (var hWnd in windowsToMinimize)
+                {
+                    ShowWindow(hWnd, SW_MINIMIZE);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Error minimizing all windows: {ex.Message}");
+            }
+        }
+
         [DllImport("user32.dll")]
         private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+        [DllImport("user32.dll")]
+        private static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+
+        [DllImport("user32.dll")]
+        private static extern bool IsWindowVisible(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        private static extern bool IsIconic(IntPtr hWnd);
+
+        private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+        private const int SW_MINIMIZE = 6;
 
         private UiTreeNode BuildUiTreeNode(AutomationElement element, string idPrefix)
         {

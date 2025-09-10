@@ -12,6 +12,8 @@ export interface IAutomationDriver {
     createProcess(executablePath: string, args?: string[]): Promise<IProcess>;
 
     findRootProcesses(options: { executablePath?: string; executableName?: string }): Promise<ProcessTree[]>;
+
+    minimizeAllWindows(): Promise<void>;
 }
 
 export class ProcessTree {

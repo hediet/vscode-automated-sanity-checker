@@ -1,7 +1,7 @@
 import { DisposableStore } from "./lib/disposables";
 import { StepsRunner } from "./lib/steps/StepsRunner";
 import { hotReloadExportedItem } from "@hediet/node-reload";
-import { getSteps } from "./steps";
+import { getCliSteps } from "./steps";
 import { ArtifactRef, getArch, getOs, VsCodeArtifactName } from "./getDownloadUrl";
 
 export function run() {
@@ -37,7 +37,7 @@ export function run() {
             "stable",
         );
 
-        store.add(hotReloadExportedItem(getSteps, f => {
+        store.add(hotReloadExportedItem(getCliSteps, f => {
             const store = new DisposableStore();
             const steps = f(store, artifact);
             runner.update(steps);

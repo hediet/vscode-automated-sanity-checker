@@ -116,6 +116,10 @@ export class WindowsAutomationDriver extends Disposable implements IAutomationDr
         await this.server.server.sendText({ text });
     }
 
+    async minimizeAllWindows(): Promise<void> {
+        await this.server.server.minimizeAllWindows();
+    }
+
     private convertToUINode(node: any, parent: UINode | undefined = undefined): UINode {
         const children: UINode[] = [];
         const n = new UINode(
@@ -297,6 +301,11 @@ const c = contract({
             params: z.object({
                 text: z.string(),
             }),
+            result: z.null(),
+        }),
+        minimizeAllWindows: requestType({
+            method: 'MinimizeAllWindows',
+            params: z.object({}),
             result: z.null(),
         }),
     },
